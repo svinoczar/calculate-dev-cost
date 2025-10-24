@@ -2,16 +2,6 @@ from data.github_api_response.CommitsResponseEntity import *
 
 
 def JSONToSingleCommitEntity(json):
-    # parents = [
-    #     ParentEntity(
-    #         url=parent["url"],
-    #         sha=parent["sha"]
-    #     )
-    #     for parent in json["parents"]
-    # ]
-    print(type(json))
-    json = json[0]
-    print(type(json))
     return SingleCommitEntity(
         url=json["url"],
         sha=json["sha"],
@@ -32,8 +22,7 @@ def JSONToSingleCommitEntity(json):
             ),
             message=json["commit"]["message"],
             tree=TreeEntity(
-                url=json["commit"]["tree"]["url"],
-                sha=json["commit"]["tree"]["sha"]
+                url=json["commit"]["tree"]["url"], sha=json["commit"]["tree"]["sha"]
             ),
             comment_count=json["commit"]["comment_count"],
             verification=CommitVerificationEntity(
@@ -41,8 +30,8 @@ def JSONToSingleCommitEntity(json):
                 reason=json["commit"]["verification"]["reason"],
                 signature=json["commit"]["verification"]["signature"],
                 payload=json["commit"]["verification"]["payload"],
-                verified_at=json["commit"]["verification"]["verified_at"]
-            )
+                verified_at=json["commit"]["verification"]["verified_at"],
+            ),
         ),
         author=GitCommitAuthorEntity(
             login=json["author"]["login"],
@@ -62,7 +51,7 @@ def JSONToSingleCommitEntity(json):
             events_url=json["author"]["events_url"],
             received_events_url=json["author"]["received_events_url"],
             type=json["author"]["type"],
-            site_admin=json["author"]["site_admin"]
+            site_admin=json["author"]["site_admin"],
         ),
         committer=GitCommitAuthorEntity(
             login=json["committer"]["login"],
@@ -82,19 +71,16 @@ def JSONToSingleCommitEntity(json):
             events_url=json["committer"]["events_url"],
             received_events_url=json["committer"]["received_events_url"],
             type=json["committer"]["type"],
-            site_admin=json["committer"]["site_admin"]
+            site_admin=json["committer"]["site_admin"],
         ),
         parents=[
-            ParentEntity(
-                url=parent["url"],
-                sha=parent["sha"]
-            )
+            ParentEntity(url=parent["url"], sha=parent["sha"])
             for parent in json["parents"]
         ],
         stats=StatsEntity(
             additions=json["stats"]["additions"],
             deletions=json["stats"]["deletions"],
-            total=json["stats"]["total"]
+            total=json["stats"]["total"],
         ),
         files=[
             FileEntity(
@@ -108,5 +94,31 @@ def JSONToSingleCommitEntity(json):
                 patch=file["patch"],
             )
             for file in json["files"]
-        ]
+        ],
     )
+
+
+def JSONToGitCommitAuthorEntityList(json):
+    return [
+        GitCommitAuthorEntity(
+            login=contributor["login"],
+            id=contributor["id"],
+            node_id=contributor["node_id"],
+            avatar_url=contributor["avatar_url"],
+            gravatar_id=contributor["gravatar_id"],
+            url=contributor["url"],
+            html_url=contributor["html_url"],
+            followers_url=contributor["followers_url"],
+            following_url=contributor["following_url"],
+            gists_url=contributor["gists_url"],
+            starred_url=contributor["starred_url"],
+            subscriptions_url=contributor["subscriptions_url"],
+            organizations_url=contributor["organizations_url"],
+            repos_url=contributor["repos_url"],
+            events_url=contributor["events_url"],
+            received_events_url=contributor["received_events_url"],
+            type=contributor["type"],
+            site_admin=contributor["site_admin"],
+        )
+        for contributor in json
+    ]

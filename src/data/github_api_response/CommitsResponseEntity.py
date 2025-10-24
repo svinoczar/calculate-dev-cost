@@ -25,11 +25,11 @@ class CommitVerificationEntity(BaseModel):
 class CommitSignatureEntity(BaseModel):
     url: str
     author: GitUserEntity
-    commiter: GitUserEntity
+    committer: GitUserEntity
     message: str
     tree: TreeEntity
     comment_count: int
-    verifcation: CommitVerificationEntity
+    verification: CommitVerificationEntity
 
 
 class GitCommitAuthorEntity(BaseModel):
@@ -85,5 +85,5 @@ class SingleCommitEntity(BaseModel):
     author: GitCommitAuthorEntity
     committer: GitCommitAuthorEntity
     parents: List[ParentEntity]
-    stats: StatsEntity
+    stats: Optional[StatsEntity]
     files: List[FileEntity]
