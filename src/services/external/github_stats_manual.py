@@ -10,7 +10,7 @@ load_dotenv()
 token = os.getenv("GITHUB_TOKEN")
 
 
-def get_commits_list(owner, repo):
+def get_commits_list(owner, repo, author):
     if not token:
         raise ValueError("GITHUB_TOKEN not found in .env file")
 
@@ -20,8 +20,11 @@ def get_commits_list(owner, repo):
         "X-GitHub-Api-Version": "2022-11-28",
         "Accept": "application/vnd.github.v3+json",
     }
+    params = {
+        "author" : author
+    }
 
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
     # return json.dumps(response.json(), indent=4)
     return response.json()
@@ -80,8 +83,8 @@ def get_contributors(owner, repo):
 
 
 # Использование
-commits = get_commits_list("Nerds-International", "nerd-code-frontend")
-commit = get_commit("Nerds-International", "nerd-code-frontend", commits[0]["sha"])
+# commits = get_commits_list("Nerds-International", "nerd-code-frontend")
+# commit = get_commit("Nerds-International", "nerd-code-frontend", commits[0]["sha"])
 # print(commit)
 # dto = JSONToSingleCommitEntity(commit)
 # print(dto)
