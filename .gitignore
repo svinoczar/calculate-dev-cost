@@ -1,2 +1,5 @@
 .env
 test.json
+src/data/github_api_response/__pycache__
+*.drawio
+*/__pycache__

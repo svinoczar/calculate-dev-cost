@@ -21,10 +21,33 @@ def get_commits_list(owner, repo):
         "Accept": "application/vnd.github.v3+json",
     }
 
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    # return json.dumps(response.json(), indent=4)
-    return response.json()
+    all_commits = []
+    page = 1
+    per_page = 100  # Максимальное количество на страницу
+
+    while True:
+        params = {
+            'page': page,
+            'per_page': per_page
+        }
+        
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        
+        commits = response.json()
+        if not commits:  # Если страница пустая - заканчиваем
+            break
+            
+        all_commits.extend(commits)
+        print(f"Retrieved page {page}: {len(commits)} commits")
+        
+        if 'next' in response.links:
+            page += 1
+        else:
+            break
+
+    print(f"Total commits retrieved: {len(all_commits)}")
+    return all_commits
 
 
 def get_commit(owner, repo, ref):
@@ -80,8 +103,8 @@ def get_contributors(owner, repo):
 
 
 # Использование
-commits = get_commits_list("Nerds-International", "nerd-code-frontend")
-commit = get_commit("Nerds-International", "nerd-code-frontend", commits[0]["sha"])
+# commits = get_commits_list("Nerds-International", "nerd-code-frontend")
+# commit = get_commit("Nerds-International", "nerd-code-frontend", commits[0]["sha"])
 # print(commit)
 # dto = JSONToSingleCommitEntity(commit)
 # print(dto)
