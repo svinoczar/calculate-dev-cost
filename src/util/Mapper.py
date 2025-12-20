@@ -1,4 +1,4 @@
-from data.github_api_response.CommitsResponseEntity import *
+from src.data.github_api_response.commits_response_entity import *
 
 
 def JSONToSingleCommitEntity(json):

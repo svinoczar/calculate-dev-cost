@@ -1,12 +1,15 @@
-from services.external.github_stats_manual import *
-from util.Mapper import JSONToGitCommitAuthorEntityList
+from src.services.external.github_stats_manual import *
+from src.util.mapper import JSONToGitCommitAuthorEntityList
+from src.util.logger import logger
+
+
 import json
 import os
 
 
 def process_repo(owner, repo):
     commits = get_commits_list(owner=owner, repo=repo)
-    print(f"Successfully retrieved {len(commits)} commits")
+    logger.info(f"Successfully retrieved {len(commits)} commits for {owner}/{repo}")
     
     contributors = get_contributors(owner=owner, repo=repo)
     dto_contributors = JSONToGitCommitAuthorEntityList(contributors)
@@ -18,7 +21,7 @@ def process_repo(owner, repo):
     # Для каждого contributor'а собираем его коммиты
     for contributor in dto_contributors:
         contributor_login = contributor.login
-        print(f"Processing commits for: {contributor_login}")
+        logger.info(f"Processing commits for: {contributor_login}")
         
         user_commits = []
         
@@ -39,15 +42,22 @@ def process_repo(owner, repo):
             filename = f"{commits_dir}/{contributor_login}_commits.json"
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(user_commits, f, ensure_ascii=False, indent=4)
-            print(f"Saved {len(user_commits)} commits to {filename}")
+            logger.info(f"Saved {len(user_commits)} commits to {filename}")
         else:
-            print(f"No commits found for {contributor_login}")
+            logger.warn(f"No commits found for {contributor_login}")
 
     with open('contributors.json', 'w', encoding='utf-8') as f:
         json.dump(contributors, f, ensure_ascii=False, indent=4)
         
     with open('all_commits_meta.json', 'w', encoding='utf-8') as f:
         json.dump(commits, f, ensure_ascii=False, indent=4)
+
+
+# def process_commits():
+#     for 
+
+
+
 
 if __name__ == '__main__':
     process_repo('Nerds-International', 'nerd-code-frontend')

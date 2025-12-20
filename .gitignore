@@ -1,3 +1,10 @@
 .env
-test.json
 __pycache__
+logs/*
+all_commits_meta.json
+author_to_hash.json
+commits.json
+contributors.json
+data.json
+test.json
+user_commits/
