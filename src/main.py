@@ -53,11 +53,15 @@ def process_repo(owner, repo):
         json.dump(commits, f, ensure_ascii=False, indent=4)
 
 
-# def process_commits():
-#     for 
+def process_commits(fileneme: str):
+    with open(fileneme, 'rt', encoding='utf-8') as f:
+        user_commits = json.load(f)
+    for 
 
 
 
 
 if __name__ == '__main__':
     process_repo('Nerds-International', 'nerd-code-frontend')
+
+    process_commits("Demid0_commits.json")
