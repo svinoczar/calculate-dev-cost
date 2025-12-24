@@ -8,3 +8,4 @@ contributors.json
 data.json
 test.json
 user_commits/
+src/models/lang_detect/model.onnx
