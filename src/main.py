@@ -1,6 +1,6 @@
-from src.services.external.github_stats_manual import *
-from src.util.mapper import JSONToGitCommitAuthorEntityList
-from src.util.logger import logger
+from services.external.github_stats_manual import *
+from util.mapper import JSONToGitCommitAuthorEntityList
+from util.logger import logger
 
 
 import json
@@ -56,12 +56,22 @@ def process_repo(owner, repo):
 def process_commits(fileneme: str):
     with open(fileneme, 'rt', encoding='utf-8') as f:
         user_commits = json.load(f)
-    for 
+    result = []
+    for commit in user_commits:
+        sha = commit['sha']
+        message = commit['commit']['message']
+        stats = commit['stats']
+        files = [{f['filename'] : f.get('patch', 'previous_filename')} for f in commit['files']]
+        commit_obj = {'sha': sha, 'message': message, 'stats': stats, 'files': files}
+        result.append(commit_obj)
+        
+    return result
+    
 
 
 
 
 if __name__ == '__main__':
-    process_repo('Nerds-International', 'nerd-code-frontend')
+    # process_repo('Nerds-International', 'nerd-code-frontend')
 
-    process_commits("Demid0_commits.json")
+    print(process_commits("user_commits/Demid0_commits.json")[0])

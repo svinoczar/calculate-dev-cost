@@ -9,3 +9,4 @@ data.json
 test.json
 user_commits/
 src/models/lang_detect/model.onnx
+src/util/__pycache__/Mapper.cpython-312.pyc
