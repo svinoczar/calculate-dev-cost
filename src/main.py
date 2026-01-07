@@ -1,11 +1,17 @@
+from data.github_api_response.commits_response_entity import SingleCommitEntity
 from services.external.github_stats_manual import *
-from util.mapper import JSONToGitCommitAuthorEntityList
+from services.internal.files_filter import FilesFilter
+from util.mapper import JSONToGitCommitAuthorEntityList, JSONToSingleCommitEntity
 from util.logger import logger
-
+from services.internal.lang_detector import LanguageDetectorModel, BasicLanguageDetector
 
 import json
 import os
+import re
 
+
+detector = LanguageDetectorModel()
+basic_detector = BasicLanguageDetector()
 
 def process_repo(owner, repo):
     commits = get_commits_list(owner=owner, repo=repo)
@@ -52,26 +58,88 @@ def process_repo(owner, repo):
     with open('all_commits_meta.json', 'w', encoding='utf-8') as f:
         json.dump(commits, f, ensure_ascii=False, indent=4)
 
-
-def process_commits(fileneme: str):
-    with open(fileneme, 'rt', encoding='utf-8') as f:
-        user_commits = json.load(f)
-    result = []
-    for commit in user_commits:
-        sha = commit['sha']
-        message = commit['commit']['message']
-        stats = commit['stats']
-        files = [{f['filename'] : f.get('patch', 'previous_filename')} for f in commit['files']]
-        commit_obj = {'sha': sha, 'message': message, 'stats': stats, 'files': files}
-        result.append(commit_obj)
-        
-    return result
+def preprocess_commits(filename: str):
+    logger.info('Processing commits . . .')
     
+    files_filter = FilesFilter()
+    commit_objects: list[SingleCommitEntity] = []
+    
+    with open(filename, 'r', encoding='utf-8') as f:
+        user_commits = json.load(f)
+    
+    for commit in user_commits:
+        commit_objects.append(JSONToSingleCommitEntity(commit))
+        
+    print(len(commit_objects))
+        
+    files_filter.filter(commit_objects)
+    
+    return
 
+    with open('TEST_COMMIT_DIFF.diff', 'w', encoding='utf-8') as out:
+        c = f_idx = 1
+
+        """ 
+    
+        [ filter cms ] -> 
+            -> for cm in cms ->
+                -> fs from cm ->
+                    -> for f in fs -> 
+                        -> [ lang detection ] -> [ objects generation ]
+
+        
+        """
+
+
+        for commit in commit_objects:
+            files = commit.files
+
+            for file in files:
+                file_path = file.filename
+                fname = re.sub(r'.*\/', '', file_path)
+
+                patch = file.patch
+                if not patch:
+                    continue
+
+                # убираем @@ ... @@
+                patch = re.sub(r'^@@.*?@@\n?', '', patch, flags=re.MULTILINE)
+                if not patch.strip():
+                    continue
+
+                # 1. базовый анализ
+                basic_lang, basic_conf = basic_detector.detect(fname, patch)
+
+                # 2. ML-анализ
+                ml_lang, ml_conf = detector.detect(patch)
+
+                # 3. финальное решение
+                if basic_conf >= 0.75:
+                    lang, conf, classifier = basic_lang, basic_conf, 'manual classifier'
+                elif ml_conf > basic_conf and ml_lang != 'Unknown':
+                    lang, conf, classifier = ml_lang, ml_conf, 'ml classifier'
+                else:
+                    lang, conf = basic_lang, basic_conf
+            
+                if lang == 'Unknown':
+                    logger.warning(f'{fname} | {lang} | {conf} | {classifier}')
+
+                out.write(f'commit {c}, file {f_idx}\n')
+                out.write(f'filename: {fname}\n')
+                out.write(f'language: {lang}, accuracy: {conf:.3f}, classifier: {classifier}\n')
+                out.write('=' * 25)
+                out.write(f'\n{patch}\n')
+                out.write('=' * 25)
+                out.write('\n\n\n')
+
+                f_idx += 1
+            c += 1
+
+    print("Done processing. . .")
 
 
 
 if __name__ == '__main__':
     # process_repo('Nerds-International', 'nerd-code-frontend')
 
-    print(process_commits("user_commits/Demid0_commits.json")[0])
+    preprocess_commits("user_commits/Demid0_commits.json")

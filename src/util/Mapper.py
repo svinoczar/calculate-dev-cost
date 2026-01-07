@@ -1,4 +1,4 @@
-from src.data.github_api_response.commits_response_entity import *
+from data.github_api_response.commits_response_entity import *
 
 
 def JSONToSingleCommitEntity(json):
@@ -91,7 +91,7 @@ def JSONToSingleCommitEntity(json):
                 status=file["status"],
                 raw_url=file["raw_url"],
                 blob_url=file["blob_url"],
-                patch=file["patch"],
+                patch=file.get("patch", ""),
             )
             for file in json["files"]
         ],
