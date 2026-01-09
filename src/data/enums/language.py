@@ -378,31 +378,50 @@ IMPORT_PATTERNS = {
 
 # File extensions mapping
 FILE_EXTENSIONS = {
-    'py': 'py',
-    'cpp': 'cpp',
-    'cc': 'cpp',
-    'cxx': 'cpp',
-    'hpp': 'cpp',
-    'h': 'cpp',
-    'java': 'java',
-    'c': 'c',
-    'h': 'c',
-    'cs': 'cs',
-    'js': 'js',
-    'jsx': 'js',
-    'ts': 'js',
-    'tsx': 'js',
-    'sql': 'sql',
-    'go': 'go',
-    'rs': 'rs',
-    'php': 'php',
-    'r': 'r',
-    'asm': 'asm',
-    's': 'asm',
-    'rb': 'rb',
-    'kt': 'kt',
-    'kts': 'kt',
-    'css': 'css',
-    'scss': 'css',
-    'sass': 'css'
+    'py': 'Python',
+    'ipynb': 'Python',
+    
+    'java': 'Java',
+    
+    'cpp': 'C++',
+    'cc': 'C++',
+    'cxx': 'C++',
+    'hpp': 'C++',
+    'h': 'C++',
+    'c': 'C',
+    'h': 'C',
+    'cs': 'C#',
+    
+    'js': 'JavaScript',
+    'jsx': 'JavaScript',
+    'ts': 'TypeScript',
+    'tsx': 'TypeScript',
+    
+    'sql': 'SQL',
+    'go': 'Go',
+    'rs': 'RS',
+    'php': 'PHP',
+    'r': 'R',
+    'rb': 'RB',
+    
+    'sasm': 'Assembler',
+    'wasm': 'Assembler',
+    'asm': 'Assembler',
+    's': 'Assembler',
+    
+    'kt': 'Kotlin',
+    'kts': 'Kotlin',
+    
+    'css': 'CSS',
+    'scss': 'CSS',
+    'sass': 'CSS',
+    
+    'html': 'HTML',
+    
+    'yml': 'YAML',
+    'yaml': 'YAML',
+    'json': 'JSON',
+    'xml': 'XML',
+    
+    'conf': 'Config',
 } 

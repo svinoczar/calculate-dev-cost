@@ -1,7 +1,13 @@
+from data.domain.commit import Commit
+from data.domain.file_change import FileChange
 from data.github_api_response.commits_response_entity import *
 
 
-def JSONToSingleCommitEntity(json):
+"""
+JSON Mappers (JSON -> DTO) 
+"""
+
+def single_commit_json_to_dto(json):
     return SingleCommitEntity(
         url=json["url"],
         sha=json["sha"],
@@ -98,7 +104,7 @@ def JSONToSingleCommitEntity(json):
     )
 
 
-def JSONToGitCommitAuthorEntityList(json):
+def git_commit_authors_json_to_dto_list(json):
     return [
         GitCommitAuthorEntity(
             login=contributor["login"],
@@ -122,3 +128,27 @@ def JSONToGitCommitAuthorEntityList(json):
         )
         for contributor in json
     ]
+
+
+
+"""
+DTO Mappers (GitHub -> Domain)
+"""
+
+def single_commit_dto_to_domain_commit_dto (dto: SingleCommitEntity) -> Commit:
+    return Commit(
+        sha=dto.sha,
+        author_login=dto.author.login if dto.author else None,
+        message=dto.commit.message,
+        files=[
+            FileChange(
+                path=f.filename,
+                filename=f.filename.split('/')[-1],
+                patch=f.patch,
+                additions=f.additions,
+                deletions=f.deletions
+            )
+            for f in dto.files
+            if f.patch
+        ]
+    )

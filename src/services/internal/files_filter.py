@@ -1,38 +1,55 @@
-
-
-import re
-from data.github_api_response.commits_response_entity import SingleCommitEntity
+import os
+import fnmatch
+from data.domain.commit import Commit
 from util.logger import logger
 
 
 class FilesFilter:
-    def __init__ (self):
-        pass
-    
-    def filter(self, commit_objects: list[SingleCommitEntity]):
-        c=1
-        with open('.dcoignore', 'r', encoding='utf-8') as f:
-            ignore_files = [line.strip() for line in f if line.strip() and not line.startswith('#')]
-            logger.info(f'{ignore_files=}')
+    def __init__(self, ignore_file: str = ".dcoignore"):
+        self.ignore_patterns = self._load_ignore_patterns(ignore_file)
 
-        for obj in commit_objects:
-            logger.info(c)
-            logger.info(f'{obj.commit.author.name=}')
-            logger.info(f'BEFORE {[f.filename for f in obj.files]}')
-            # obj.files = filter(not str.endswith(any(ignore_files)), obj.files)
+    def _load_ignore_patterns(self, path: str) -> list[str]:
+        if not os.path.exists(path):
+            logger.warning(f"{path} not found, no files ignored")
+            return []
 
-            obj.files = [
-                f for f in obj.files 
-                if not re.sub(r'.*\/', '', f.filename).startswith('.')  # Игнорировать скрытые файлы
-                and not any(re.sub(r'.*\/', '', f.filename).endswith(ext) for ext in ignore_files)  # Игнорировать по расширениям
+        with open(path, "r", encoding="utf-8") as f:
+            patterns = [
+                line.strip()
+                for line in f
+                if line.strip() and not line.startswith("#")
             ]
-                        
-            logger.info(f'AFTER {[f.filename for f in obj.files]}')
-            c+=1
-            # file_path = file.filename
-            
-            # fname = re.sub(r'.*\/', '', file_path)
-            # if fname.endswith(any())
-            
-    # def process_dcoignore():
+
+        logger.info(f"Loaded ignore patterns: {patterns}")
+        return patterns
+
+    def filter(self, commit: Commit) -> Commit:
+        # print(self.ignore_patterns)
         
+        before = len(commit.files)
+
+        commit.files = [
+            f for f in commit.files
+            if self._is_allowed(f.filename)
+        ]
+
+        after = len(commit.files)
+
+        if before != after:
+            logger.debug(
+                f"Commit {commit.sha}: filtered {before - after} files"
+            )
+
+        return commit
+
+    def _is_allowed(self, filename: str) -> bool:
+        # скрытые файлы
+        if filename.startswith("."):
+            return False
+        # match по .dcoignore (glob, а не endswith)
+        for pattern in self.ignore_patterns:
+            if filename.endswith(pattern):
+                print('pipipiski')
+                return False
+
+        return True

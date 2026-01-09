@@ -10,6 +10,8 @@ import re
 
 class LanguageDetectorModel:
     def __init__(self):
+        # FIXME: remove return, check __init__ for no internet work
+        # return
         base_dir = os.path.dirname(__file__)
         model_dir = os.path.join(
             base_dir, "..", "..", "models", "lang_detect"
@@ -66,8 +68,8 @@ class BasicLanguageDetector:
         lang = self._by_extension(filename)
         if not lang:
             return "Unknown", 0.0
-
-        confidence = 0.6
+        
+        confidence = 1
 
         if patch:
             score = self._score_by_patterns(lang, patch)

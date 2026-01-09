@@ -1,7 +1,8 @@
+from data.domain.commit import Commit
 from data.github_api_response.commits_response_entity import SingleCommitEntity
 from services.external.github_stats_manual import *
 from services.internal.files_filter import FilesFilter
-from util.mapper import JSONToGitCommitAuthorEntityList, JSONToSingleCommitEntity
+from util.mapper import git_commit_authors_json_to_dto_list, single_commit_dto_to_domain_commit_dto, single_commit_json_to_dto
 from util.logger import logger
 from services.internal.lang_detector import LanguageDetectorModel, BasicLanguageDetector
 
@@ -18,7 +19,7 @@ def process_repo(owner, repo):
     logger.info(f"Successfully retrieved {len(commits)} commits for {owner}/{repo}")
     
     contributors = get_contributors(owner=owner, repo=repo)
-    dto_contributors = JSONToGitCommitAuthorEntityList(contributors)
+    dto_contributors = git_commit_authors_json_to_dto_list(contributors)
 
     commits_dir = "user_commits"
     if not os.path.exists(commits_dir):
@@ -62,36 +63,32 @@ def preprocess_commits(filename: str):
     logger.info('Processing commits . . .')
     
     files_filter = FilesFilter()
-    commit_objects: list[SingleCommitEntity] = []
+    commit_github_objects: list[SingleCommitEntity] = []
+    commit_domain_objects: list[Commit] = []
+    filtered_commit_domain_objects: list[Commit] = []
     
     with open(filename, 'r', encoding='utf-8') as f:
         user_commits = json.load(f)
     
     for commit in user_commits:
-        commit_objects.append(JSONToSingleCommitEntity(commit))
-        
-    print(len(commit_objects))
-        
-    files_filter.filter(commit_objects)
+        commit_github_objects.append(single_commit_json_to_dto(commit))
     
-    return
+    for commit in commit_github_objects:
+        commit_domain_objects.append(single_commit_dto_to_domain_commit_dto(commit))
+        
+    print(len(commit_domain_objects))
+        
+    print(f'GH: {commit_github_objects[0].dict().keys()}')
+    print(f'DOMAIN: {commit_domain_objects[0].dict().keys()}')
+        
+    for commit in commit_domain_objects:
+        filtered_commit_domain_objects.append(files_filter.filter(commit))
+    
 
     with open('TEST_COMMIT_DIFF.diff', 'w', encoding='utf-8') as out:
         c = f_idx = 1
 
-        """ 
-    
-        [ filter cms ] -> 
-            -> for cm in cms ->
-                -> fs from cm ->
-                    -> for f in fs -> 
-                        -> [ lang detection ] -> [ objects generation ]
-
-        
-        """
-
-
-        for commit in commit_objects:
+        for commit in commit_domain_objects:
             files = commit.files
 
             for file in files:
@@ -127,6 +124,8 @@ def preprocess_commits(filename: str):
                 out.write(f'commit {c}, file {f_idx}\n')
                 out.write(f'filename: {fname}\n')
                 out.write(f'language: {lang}, accuracy: {conf:.3f}, classifier: {classifier}\n')
+                # out.write(f'language: {basic_lang}, accuracy: {basic_conf:.3f}, classifier: {'manual classifier'}\n')
+                # out.write(f'language: {ml_lang}, accuracy: {ml_conf:.3f}, classifier: {'ml classifier'}\n')
                 out.write('=' * 25)
                 out.write(f'\n{patch}\n')
                 out.write('=' * 25)

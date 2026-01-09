@@ -3,7 +3,7 @@ import requests
 import json
 
 from dotenv import load_dotenv
-from util.mapper import JSONToSingleCommitEntity
+from util.mapper import single_commit_json_to_dto
 
 
 load_dotenv()
