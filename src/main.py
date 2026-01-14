@@ -2,22 +2,29 @@ from data.domain.commit import Commit
 from data.github_api_response.commits_response_entity import SingleCommitEntity
 from services.external.github_stats_manual import *
 from services.internal.files_filter import FilesFilter
-from util.mapper import git_commit_authors_json_to_dto_list, single_commit_dto_to_domain_commit_dto, single_commit_json_to_dto
+from services.internal.commit_enricher import CommitEnricher
+from services.internal.file_language_enricher import FileLanguageEnricher
+from services.internal.commit_type_detector import CommitTypeDetector
+from util.mapper import (
+    git_commit_authors_json_to_dto_list,
+    single_commit_dto_to_domain_commit_dto,
+    single_commit_json_to_dto,
+)
 from util.logger import logger
-from services.internal.lang_detector import LanguageDetectorModel, BasicLanguageDetector
+from services.internal.lang_detector import LanguageDetector
 
 import json
 import os
 import re
 
 
-detector = LanguageDetectorModel()
-basic_detector = BasicLanguageDetector()
+lang_detector = LanguageDetector()
+
 
 def process_repo(owner, repo):
     commits = get_commits_list(owner=owner, repo=repo)
     logger.info(f"Successfully retrieved {len(commits)} commits for {owner}/{repo}")
-    
+
     contributors = get_contributors(owner=owner, repo=repo)
     dto_contributors = git_commit_authors_json_to_dto_list(contributors)
 
@@ -29,116 +36,101 @@ def process_repo(owner, repo):
     for contributor in dto_contributors:
         contributor_login = contributor.login
         logger.info(f"Processing commits for: {contributor_login}")
-        
-        user_commits = []
-        
-        for commit in commits:
-            if (commit.get('author') and 
-                commit['author'].get('login') and 
-                commit['author']['login'] == contributor_login):
 
-                sha = commit['sha']
+        user_commits = []
+
+        for commit in commits:
+            if (
+                commit.get("author")
+                and commit["author"].get("login")
+                and commit["author"]["login"] == contributor_login
+            ):
+
+                sha = commit["sha"]
                 try:
                     full_commit = get_commit(owner=owner, repo=repo, ref=sha)
                     # commit_dto = JSONToSingleCommitEntity(full_commit)
                     user_commits.append(full_commit)
                 except Exception as e:
                     print(f"Error getting commit {sha}: {e}")
-        
+
         if user_commits:
             filename = f"{commits_dir}/{contributor_login}_commits.json"
-            with open(filename, 'w', encoding='utf-8') as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 json.dump(user_commits, f, ensure_ascii=False, indent=4)
             logger.info(f"Saved {len(user_commits)} commits to {filename}")
         else:
             logger.warn(f"No commits found for {contributor_login}")
 
-    with open('contributors.json', 'w', encoding='utf-8') as f:
+    with open("contributors.json", "w", encoding="utf-8") as f:
         json.dump(contributors, f, ensure_ascii=False, indent=4)
-        
-    with open('all_commits_meta.json', 'w', encoding='utf-8') as f:
+
+    with open("all_commits_meta.json", "w", encoding="utf-8") as f:
         json.dump(commits, f, ensure_ascii=False, indent=4)
 
+
 def preprocess_commits(filename: str):
-    logger.info('Processing commits . . .')
-    
+    logger.info("Processing commits . . .")
+
     files_filter = FilesFilter()
     commit_github_objects: list[SingleCommitEntity] = []
     commit_domain_objects: list[Commit] = []
     filtered_commit_domain_objects: list[Commit] = []
     
-    with open(filename, 'r', encoding='utf-8') as f:
+    file_enricher = FileLanguageEnricher(lang_detector)
+    commit_type_detector = CommitTypeDetector()
+    commit_enricher = CommitEnricher(
+        file_enricher=file_enricher,
+        commit_type_detector=commit_type_detector
+    )
+
+    with open(filename, "r", encoding="utf-8") as f:
         user_commits = json.load(f)
-    
+
     for commit in user_commits:
         commit_github_objects.append(single_commit_json_to_dto(commit))
-    
+
     for commit in commit_github_objects:
         commit_domain_objects.append(single_commit_dto_to_domain_commit_dto(commit))
-        
-    print(len(commit_domain_objects))
-        
-    print(f'GH: {commit_github_objects[0].dict().keys()}')
-    print(f'DOMAIN: {commit_domain_objects[0].dict().keys()}')
-        
+
+    # print(len(commit_domain_objects))
+
+    # print(f"GH: {commit_github_objects[0].model_dump().keys()}")
+    # print(f"DOMAIN: {commit_domain_objects[0].model_dump().keys()}")
+
     for commit in commit_domain_objects:
-        filtered_commit_domain_objects.append(files_filter.filter(commit))
-    
+        commit = files_filter.filter(commit)
+        commit = commit_enricher.enrich(commit)
+        filtered_commit_domain_objects.append(commit)
 
-    with open('TEST_COMMIT_DIFF.diff', 'w', encoding='utf-8') as out:
-        c = f_idx = 1
+    with open("TEST_COMMIT_DIFF.diff", "w", encoding="utf-8") as out:
+        c = 1
 
-        for commit in commit_domain_objects:
-            files = commit.files
+        for commit in filtered_commit_domain_objects:
+            out.write(
+                f'commit {c}\n'
+                f'commit_type: {commit.commit_type}\n'
+                f'confidence: {commit.commit_type_confidence:.3f}\n\n'
+            )
 
-            for file in files:
-                file_path = file.filename
-                fname = re.sub(r'.*\/', '', file_path)
-
-                patch = file.patch
-                if not patch:
+            for file in commit.files:
+                if not file.patch:
                     continue
 
-                # убираем @@ ... @@
-                patch = re.sub(r'^@@.*?@@\n?', '', patch, flags=re.MULTILINE)
-                if not patch.strip():
-                    continue
+                out.write(f'filename: {file.filename}\n')
+                out.write(
+                    f'language: {file.language} \n'
+                )
+                out.write('=' * 25 + '\n')
+                out.write(file.patch + '\n')
+                out.write('=' * 25 + '\n\n')
 
-                # 1. базовый анализ
-                basic_lang, basic_conf = basic_detector.detect(fname, patch)
-
-                # 2. ML-анализ
-                ml_lang, ml_conf = detector.detect(patch)
-
-                # 3. финальное решение
-                if basic_conf >= 0.75:
-                    lang, conf, classifier = basic_lang, basic_conf, 'manual classifier'
-                elif ml_conf > basic_conf and ml_lang != 'Unknown':
-                    lang, conf, classifier = ml_lang, ml_conf, 'ml classifier'
-                else:
-                    lang, conf = basic_lang, basic_conf
-            
-                if lang == 'Unknown':
-                    logger.warning(f'{fname} | {lang} | {conf} | {classifier}')
-
-                out.write(f'commit {c}, file {f_idx}\n')
-                out.write(f'filename: {fname}\n')
-                out.write(f'language: {lang}, accuracy: {conf:.3f}, classifier: {classifier}\n')
-                # out.write(f'language: {basic_lang}, accuracy: {basic_conf:.3f}, classifier: {'manual classifier'}\n')
-                # out.write(f'language: {ml_lang}, accuracy: {ml_conf:.3f}, classifier: {'ml classifier'}\n')
-                out.write('=' * 25)
-                out.write(f'\n{patch}\n')
-                out.write('=' * 25)
-                out.write('\n\n\n')
-
-                f_idx += 1
             c += 1
 
     print("Done processing. . .")
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     # process_repo('Nerds-International', 'nerd-code-frontend')
 
     preprocess_commits("user_commits/Demid0_commits.json")

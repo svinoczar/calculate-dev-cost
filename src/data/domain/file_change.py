@@ -9,3 +9,4 @@ class FileChange(BaseModel):
 
     language: str | None = None
     language_confidence: float | None = None
+    language_classifier: str | None = None

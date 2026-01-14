@@ -49,7 +49,6 @@ class FilesFilter:
         # match по .dcoignore (glob, а не endswith)
         for pattern in self.ignore_patterns:
             if filename.endswith(pattern):
-                print('pipipiski')
                 return False
 
         return True
