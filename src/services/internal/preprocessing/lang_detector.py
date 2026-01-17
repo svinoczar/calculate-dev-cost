@@ -1,4 +1,4 @@
-from data.enums.language import FILE_EXTENSIONS, FUNCTION_PATTERNS, CLASS_PATTERNS, IMPORT_PATTERNS
+from src.data.enums.language import FILE_EXTENSIONS, FUNCTION_PATTERNS, CLASS_PATTERNS, IMPORT_PATTERNS
 
 from transformers import AutoTokenizer
 from onnxruntime import InferenceSession

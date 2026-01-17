@@ -1,8 +1,8 @@
 from collections import defaultdict
 import fnmatch
 import re
-from data.domain.commit import Commit
-from data.enums.analytics import COMMIT_TYPE_PATTERNS, CONVENTIONAL_COMMIT_PATTERN
+from src.data.domain.commit import Commit
+from src.data.enums.analytics import COMMIT_TYPE_PATTERNS, CONVENTIONAL_COMMIT_PATTERN
 
 
 class CommitTypeDetector:

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List
 
-from data.domain.file_change import FileChange
+from src.data.domain.file_change import FileChange
 
 class Commit(BaseModel):
     sha: str

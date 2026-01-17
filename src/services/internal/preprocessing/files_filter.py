@@ -1,12 +1,13 @@
 import os
 import fnmatch
-from data.domain.commit import Commit
-from util.logger import logger
+from src.data.domain.commit import Commit
+from src.util.logger import logger
 
 
 class FilesFilter:
     def __init__(self, ignore_file: str = ".dcoignore"):
         self.ignore_patterns = self._load_ignore_patterns(ignore_file)
+        logger.info(f"Loaded ignore patterns: {self.ignore_patterns}")
 
     def _load_ignore_patterns(self, path: str) -> list[str]:
         if not os.path.exists(path):
@@ -20,7 +21,6 @@ class FilesFilter:
                 if line.strip() and not line.startswith("#")
             ]
 
-        logger.info(f"Loaded ignore patterns: {patterns}")
         return patterns
 
     def filter(self, commit: Commit) -> Commit:

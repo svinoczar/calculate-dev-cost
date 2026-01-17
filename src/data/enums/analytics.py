@@ -2,7 +2,7 @@
 Analytics patterns and constants for commit analysis.
 """
 from typing import Dict, List, Any
-from data.enums.language import COMMENT_PATTERNS, FUNCTION_PATTERNS, CLASS_PATTERNS, IMPORT_PATTERNS, FILE_EXTENSIONS
+from src.data.enums.language import COMMENT_PATTERNS, FUNCTION_PATTERNS, CLASS_PATTERNS, IMPORT_PATTERNS, FILE_EXTENSIONS
 
 
 # Comment symbols for different file types (legacy, now using COMMENT_PATTERNS)

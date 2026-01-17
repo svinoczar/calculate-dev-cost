@@ -1,6 +1,6 @@
-from data.domain.commit import Commit
-from data.domain.file_change import FileChange
-from data.github_api_response.commits_response_entity import *
+from src.data.domain.commit import Commit
+from src.data.domain.file_change import FileChange
+from src.data.github_api_response.commits_response_entity import *
 
 
 """
@@ -83,10 +83,11 @@ def single_commit_json_to_dto(json):
             ParentEntity(url=parent["url"], sha=parent["sha"])
             for parent in json["parents"]
         ],
-        stats=StatsEntity(
-            additions=json["stats"]["additions"],
-            deletions=json["stats"]["deletions"],
-            total=json["stats"]["total"],
+        
+        stats=StatsEntity( 
+            additions = json.get("stats", {}).get("additions", 0),
+            deletions = json.get("stats", {}).get("deletions", 0),
+            total = json.get("stats", {}).get("total", 0)
         ),
         files=[
             FileEntity(
@@ -99,7 +100,7 @@ def single_commit_json_to_dto(json):
                 blob_url=file["blob_url"],
                 patch=file.get("patch", ""),
             )
-            for file in json["files"]
+            for file in json.get("files", [])
         ],
     )
 

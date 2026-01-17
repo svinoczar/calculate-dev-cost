@@ -3,15 +3,15 @@ import requests
 import json
 
 from dotenv import load_dotenv
-from util.mapper import single_commit_json_to_dto
+from src.util.mapper import single_commit_json_to_dto
 
 
 load_dotenv()
 
-token = os.getenv("GITHUB_TOKEN")
 
-
-def get_commits_list(owner, repo):
+def get_commits_list(owner, repo, token=None):
+    if token is None:
+        token = os.getenv("GITHUB_TOKEN")
     if not token:
         raise ValueError("GITHUB_TOKEN not found in .env file")
 
@@ -51,8 +51,9 @@ def get_commits_list(owner, repo):
     return all_commits
 
 
-def get_commit(owner, repo, ref):
-
+def get_commit(owner, repo, ref, token=None):
+    if token is None:
+        token = os.getenv("GITHUB_TOKEN")
     if not token:
         raise ValueError("GITHUB_TOKEN not found in .env file")
 
@@ -68,8 +69,9 @@ def get_commit(owner, repo, ref):
     return response.json()
 
 
-def compare_commit(owner, repo, basehead):
-
+def compare_commit(owner, repo, basehead, token=None):
+    if token is None:
+        token = os.getenv("GITHUB_TOKEN")
     if not token:
         raise ValueError("GITHUB_TOKEN not found in .env file")
 
@@ -85,8 +87,10 @@ def compare_commit(owner, repo, basehead):
     return json.loads(response.json())
 
 
-def get_contributors(owner, repo):
+def get_contributors(owner, repo, token=None):
 
+    if token is None:
+        token = os.getenv("GITHUB_TOKEN")
     if not token:
         raise ValueError("GITHUB_TOKEN not found in .env file")
 

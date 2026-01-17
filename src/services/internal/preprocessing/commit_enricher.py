@@ -1,8 +1,8 @@
 from typing import Optional
 
-from data.domain.commit import Commit
-from services.internal.file_language_enricher import FileLanguageEnricher
-from services.internal.commit_type_detector import CommitTypeDetector
+from src.data.domain.commit import Commit
+from src.services.internal.preprocessing.file_language_enricher import FileLanguageEnricher
+from src.services.internal.preprocessing.commit_type_detector import CommitTypeDetector
 
 
 class CommitEnricher:

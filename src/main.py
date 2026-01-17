@@ -1,17 +1,19 @@
-from data.domain.commit import Commit
-from data.github_api_response.commits_response_entity import SingleCommitEntity
-from services.external.github_stats_manual import *
-from services.internal.files_filter import FilesFilter
-from services.internal.commit_enricher import CommitEnricher
-from services.internal.file_language_enricher import FileLanguageEnricher
-from services.internal.commit_type_detector import CommitTypeDetector
-from util.mapper import (
+from src.adapters.db.base import SessionLocal
+from src.adapters.db.repositories.repository_repo import RepositoryRepository
+from src.data.domain.commit import Commit
+from src.data.github_api_response.commits_response_entity import SingleCommitEntity
+from src.services.external.github_stats_manual import *
+from src.services.internal.preprocessing.files_filter import FilesFilter
+from src.services.internal.preprocessing.commit_enricher import CommitEnricher
+from src.services.internal.preprocessing.file_language_enricher import FileLanguageEnricher
+from src.services.internal.preprocessing.commit_type_detector import CommitTypeDetector
+from src.util.mapper import (
     git_commit_authors_json_to_dto_list,
     single_commit_dto_to_domain_commit_dto,
     single_commit_json_to_dto,
 )
-from util.logger import logger
-from services.internal.lang_detector import LanguageDetector
+from src.util.logger import logger
+from src.services.internal.preprocessing.lang_detector import LanguageDetector
 
 import json
 import os
@@ -76,12 +78,11 @@ def preprocess_commits(filename: str):
     commit_github_objects: list[SingleCommitEntity] = []
     commit_domain_objects: list[Commit] = []
     filtered_commit_domain_objects: list[Commit] = []
-    
+
     file_enricher = FileLanguageEnricher(lang_detector)
     commit_type_detector = CommitTypeDetector()
     commit_enricher = CommitEnricher(
-        file_enricher=file_enricher,
-        commit_type_detector=commit_type_detector
+        file_enricher=file_enricher, commit_type_detector=commit_type_detector
     )
 
     with open(filename, "r", encoding="utf-8") as f:
@@ -108,22 +109,20 @@ def preprocess_commits(filename: str):
 
         for commit in filtered_commit_domain_objects:
             out.write(
-                f'commit {c}\n'
-                f'commit_type: {commit.commit_type}\n'
-                f'confidence: {commit.commit_type_confidence:.3f}\n\n'
+                f"commit {c}\n"
+                f"commit_type: {commit.commit_type}\n"
+                f"confidence: {commit.commit_type_confidence:.3f}\n\n"
             )
 
             for file in commit.files:
                 if not file.patch:
                     continue
 
-                out.write(f'filename: {file.filename}\n')
-                out.write(
-                    f'language: {file.language} \n'
-                )
-                out.write('=' * 25 + '\n')
-                out.write(file.patch + '\n')
-                out.write('=' * 25 + '\n\n')
+                out.write(f"filename: {file.filename}\n")
+                out.write(f"language: {file.language} \n")
+                out.write("=" * 25 + "\n")
+                out.write(file.patch + "\n")
+                out.write("=" * 25 + "\n\n")
 
             c += 1
 
@@ -131,6 +130,6 @@ def preprocess_commits(filename: str):
 
 
 if __name__ == "__main__":
-    # process_repo('Nerds-International', 'nerd-code-frontend')
+    process_repo('Nerds-International', 'nerd-code-frontend')
 
-    preprocess_commits("user_commits/Demid0_commits.json")
+    # preprocess_commits("user_commits/Demid0_commits.json")
