@@ -1,4 +1,6 @@
+from datetime import datetime
 import os
+from time import time
 import requests
 import json
 
@@ -9,11 +11,17 @@ from src.util.mapper import single_commit_json_to_dto
 load_dotenv()
 
 
-def get_commits_list(owner, repo, token=None):
+def get_commits_list(
+    owner,
+    repo,
+    token=None,
+    since: datetime | None = None,
+    max_commits: int | None = None,
+):
     if token is None:
         token = os.getenv("GITHUB_TOKEN")
     if not token:
-        raise ValueError("GITHUB_TOKEN not found in .env file")
+        raise ValueError("GITHUB_TOKEN not found")
 
     url = f"https://api.github.com/repos/{owner}/{repo}/commits"
     headers = {
@@ -24,31 +32,51 @@ def get_commits_list(owner, repo, token=None):
 
     all_commits = []
     page = 1
-    per_page = 100  # Максимальное количество на страницу
+    per_page = 100
 
     while True:
         params = {
-            'page': page,
-            'per_page': per_page
+            "page": page,
+            "per_page": per_page,
         }
-        
-        response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()
-        
+
+        if since:
+            params["since"] = since.isoformat()
+
+        for attempt in range(3):
+            try:
+                response = requests.get(
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=60,
+                )
+                response.raise_for_status()
+                break
+            except requests.RequestException as e:
+                if attempt == 2:
+                    raise
+                time.sleep(5)
+
         commits = response.json()
-        if not commits:  # Если страница пустая - заканчиваем
+        if not commits:
             break
-            
-        all_commits.extend(commits)
+
+        for commit in commits:
+            all_commits.append(commit)
+            if max_commits and len(all_commits) >= max_commits:
+                return all_commits
+
         print(f"Retrieved page {page}: {len(commits)} commits")
-        
-        if 'next' in response.links:
+
+        if "next" in response.links:
             page += 1
         else:
             break
 
     print(f"Total commits retrieved: {len(all_commits)}")
     return all_commits
+
 
 
 def get_commit(owner, repo, ref, token=None):
@@ -64,7 +92,7 @@ def get_commit(owner, repo, ref, token=None):
         "Accept": "application/vnd.github.v3+json",
     }
 
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=60)
     response.raise_for_status()
     return response.json()
 
@@ -82,7 +110,7 @@ def compare_commit(owner, repo, basehead, token=None):
         "Accept": "application/vnd.github.v3+json",
     }
 
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=60)
     response.raise_for_status()
     return json.loads(response.json())
 

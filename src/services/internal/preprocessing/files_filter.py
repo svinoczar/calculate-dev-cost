@@ -7,7 +7,7 @@ from src.util.logger import logger
 class FilesFilter:
     def __init__(self, ignore_file: str = ".dcoignore"):
         self.ignore_patterns = self._load_ignore_patterns(ignore_file)
-        logger.info(f"Loaded ignore patterns: {self.ignore_patterns}")
+        # logger.info(f"Loaded ignore patterns: {self.ignore_patterns}")
 
     def _load_ignore_patterns(self, path: str) -> list[str]:
         if not os.path.exists(path):

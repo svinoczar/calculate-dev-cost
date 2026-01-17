@@ -1,3 +1,4 @@
+import datetime
 from src.adapters.db.base import SessionLocal
 from src.adapters.db.repositories.repository_repo import RepositoryRepository
 from src.adapters.db.repositories.contributor_repo import ContributorRepository
@@ -25,7 +26,12 @@ import re
 
 lang_detector = LanguageDetector()
 
-def process_repo(owner, repo, token=None):
+def process_repo(
+        owner,
+        repo,
+        token=None,
+        since: datetime | None = None,
+        max_commits: int | None = None):
     """
     Обрабатывает репозиторий:
     1) Проверяет, есть ли репо в БД
@@ -33,7 +39,13 @@ def process_repo(owner, repo, token=None):
     3) Если есть, добавляет только новые коммиты и новых контрибьюторов
     """
 
-    commits = get_commits_list(owner, repo, token=token)
+    commits = get_commits_list(
+        owner,
+        repo,
+        token=token,
+        since=since,
+        max_commits=max_commits,
+    )
     contributors = get_contributors(owner, repo, token=token)
 
     dto_contributors = git_commit_authors_json_to_dto_list(contributors)

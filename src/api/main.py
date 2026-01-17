@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel
 from src.services.internal.process import process_repo, preprocess_commits
@@ -22,6 +23,8 @@ app = FastAPI(title=settings.app_name, debug=settings.debug)
 class RepoRequest(BaseModel):
     owner: str
     repo: str
+    since: datetime | None = None
+    max_commits: int
 
 
 class CommitsFileRequest(BaseModel):
@@ -36,7 +39,7 @@ def api_process_repo(
     if not github_token:
         raise HTTPException(status_code=400, detail="GitHub token header missing")
     try:
-        process_repo(req.owner, req.repo, token=github_token)
+        process_repo(req.owner, req.repo, token=github_token, since=req.since, max_commits=req.max_commits)
         return {"status": "success", "message": f"Processed {req.owner}/{req.repo}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
