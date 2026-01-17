@@ -4,7 +4,7 @@ set -e
 
 DB_NAME="commit_analytics"
 DB_USER="postgres"
-DB_PASSWORD="0000"
+DB_PASSWORD="postgres"
 DB_HOST="localhost"
 DB_PORT="5432"
 

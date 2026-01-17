@@ -24,7 +24,7 @@ END$$;
 CREATE TABLE IF NOT EXISTS repositories (
     id              BIGSERIAL PRIMARY KEY,
     vcs_provider    vcs_provider NOT NULL,
-    external_id     TEXT NOT NULL,
+    external_id     TEXT,
     owner           TEXT NOT NULL,
     name            TEXT NOT NULL,
     url             TEXT NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS person_contributors (
 -- =====================================
 CREATE TABLE IF NOT EXISTS commits (
     id                      BIGSERIAL PRIMARY KEY,
-    repo_id                 BIGINT NOT NULL REFERENCES repositories(id) ON DELETE CASCADE,
+    repository_id                 BIGINT NOT NULL REFERENCES repositories(id) ON DELETE CASCADE,
     contributor_id          BIGINT REFERENCES contributors(id),
     sha                     TEXT NOT NULL,
     message                 TEXT NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS commits (
     commit_type_confidence  REAL DEFAULT 1.0,
     created_at              TIMESTAMPTZ DEFAULT now(),
 
-    UNIQUE (repo_id, sha)
+    UNIQUE (repository_id, sha)
 );
 
 -- =====================================
@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS commit_files (
 -- Indexes
 -- =====================================
 CREATE INDEX IF NOT EXISTS idx_commits_repo
-    ON commits(repo_id);
+    ON commits(repository_id);
 
 CREATE INDEX IF NOT EXISTS idx_commits_contributor
     ON commits(contributor_id);

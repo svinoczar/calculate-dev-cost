@@ -5,3 +5,6 @@ pydantic
 onnxruntime
 pydantic_settings
 fastapi
+psycopg2
+sqlalchemy
+uvicorn
