@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS repositories (
     url             TEXT NOT NULL,
     default_branch  TEXT,
     created_at      TIMESTAMPTZ DEFAULT now(),
+    updated_at      TIMESTAMPTZ DEFAULT now(),
 
     UNIQUE (vcs_provider, external_id)
 );
@@ -46,6 +47,7 @@ CREATE TABLE IF NOT EXISTS contributors (
     email           TEXT,
     profile_url     TEXT,
     created_at      TIMESTAMPTZ DEFAULT now(),
+    updated_at      TIMESTAMPTZ DEFAULT now(),
 
     UNIQUE (vcs_provider, external_id)
 );
@@ -56,7 +58,8 @@ CREATE TABLE IF NOT EXISTS contributors (
 CREATE TABLE IF NOT EXISTS persons (
     id          BIGSERIAL PRIMARY KEY,
     full_name   TEXT,
-    created_at  TIMESTAMPTZ DEFAULT now()
+    created_at  TIMESTAMPTZ DEFAULT now(),
+    updated_at  TIMESTAMPTZ DEFAULT now()
 );
 
 -- =====================================
@@ -66,6 +69,7 @@ CREATE TABLE IF NOT EXISTS person_contributors (
     person_id       BIGINT REFERENCES persons(id) ON DELETE CASCADE,
     contributor_id  BIGINT REFERENCES contributors(id) ON DELETE CASCADE,
     created_at      TIMESTAMPTZ DEFAULT now(),
+    updated_at      TIMESTAMPTZ DEFAULT now(),
 
     PRIMARY KEY (person_id, contributor_id)
 );
@@ -81,9 +85,15 @@ CREATE TABLE IF NOT EXISTS commits (
     message                 TEXT NOT NULL,
     authored_at             TIMESTAMPTZ,
     committed_at            TIMESTAMPTZ,
+    author_name             TEXT,
+    author_email            TEXT,
+    additions               INTEGER,
+    deletions               INTEGER,
+    changes                 INTEGER,
     commit_type             TEXT,
     commit_type_confidence  REAL DEFAULT 1.0,
     created_at              TIMESTAMPTZ DEFAULT now(),
+    updated_at              TIMESTAMPTZ DEFAULT now(),
 
     UNIQUE (repository_id, sha)
 );
