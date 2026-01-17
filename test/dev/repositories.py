@@ -36,16 +36,28 @@ def test_contributor_repo():
 
 def test_commit_repo():
     with SessionLocal() as session:
+        repo_repo = RepositoryRepository(session)
         commit_repo = CommitRepository(session)
 
+        repo = repo_repo.get_or_create(
+            owner="Nerds-International",
+            name="nerd-code-frontend",
+            vcs_provider="github",
+            external_id="123456",
+            url="https://github.com/Nerds-International/nerd-code-frontend",
+        )
+
+        print("REPO ID:", repo.id)  # ← обязательно посмотри
+
         commit = commit_repo.create(
-            repo_id=1,
+            repository_id=repo.id,        # ← ТОЛЬКО ТАК
             contributor_id=None,
             sha="abc123",
             message="initial commit",
         )
 
         assert commit.id is not None
+
 
 
 if __name__ == "__main__":
