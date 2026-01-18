@@ -7,7 +7,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from adapters.db.base import Base
+from src.adapters.db.base import Base
 
 
 class CommitFileModel(Base):

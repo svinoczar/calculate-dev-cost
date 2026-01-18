@@ -1,7 +1,9 @@
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Header
+from fastapi.params import Depends
 from pydantic import BaseModel
-from src.services.internal.process import process_repo, preprocess_commits
+from requests import Session
+from src.services.internal.process import process_repo, update_commits
 from src.adapters.db.base import SessionLocal
 from src.adapters.db.repositories.repository_repo import RepositoryRepository
 import os
@@ -24,11 +26,21 @@ class RepoRequest(BaseModel):
     owner: str
     repo: str
     since: datetime | None = None
-    max_commits: int
+    max_commits: int | None = None
 
 
-class CommitsFileRequest(BaseModel):
-    filename: str
+class UpdateCommitsRequest(BaseModel):
+    repository_id: int
+    limit: int = 100
+    since: datetime | None = None
+    max_commits: int | None = None
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @app.post("/repo/init")
@@ -45,15 +57,23 @@ def api_process_repo(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/preprocess_commits")
-def api_preprocess_commits(req: CommitsFileRequest):
-    if not os.path.exists(req.filename):
-        raise HTTPException(status_code=404, detail="File not found")
+@app.post("/commits/update")
+def api_update_commits(
+    req: UpdateCommitsRequest, 
+    db: Session = Depends(get_db),
+    github_token: str = Header(None, alias='ght')
+    ):
     try:
-        preprocess_commits.preprocess_commits(req.filename)
+        count = update_commits(
+            db=db,
+            repository_id=req.repository_id,
+            token=github_token,
+            limit=req.limit,
+            since=req.since        
+            )
         return {
             "status": "success",
-            "message": f"Processed commits from {req.filename}",
+            "updated_commits": count
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

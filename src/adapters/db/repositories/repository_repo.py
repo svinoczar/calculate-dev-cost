@@ -8,13 +8,6 @@ class RepositoryRepository:
     def __init__(self, db_session: Session):
         self.db = db_session
 
-    def get_by_owner_name(self, owner: str, name: str, vcs_provider: str = "github") -> RepositoryModel | None:
-        return (
-            self.db.query(RepositoryModel)
-            .filter_by(owner=owner, name=name, vcs_provider=vcs_provider)
-            .first()
-        )
-
     def create(
         self,
         owner: str,
@@ -67,5 +60,16 @@ class RepositoryRepository:
             .first()
         )
 
+    def get_by_owner_name(self, owner: str, name: str, vcs_provider: str = "github") -> RepositoryModel | None:
+        return (
+            self.db.query(RepositoryModel)
+            .filter_by(owner=owner, name=name, vcs_provider=vcs_provider)
+            .first()
+        )
 
-
+    def get_by_id(self, id: int) -> RepositoryModel | None:
+        return (
+            self.db.query(RepositoryModel)
+            .filter_by(id=id)
+            .first()
+        )

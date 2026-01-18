@@ -136,20 +136,31 @@ def git_commit_authors_json_to_dto_list(json):
 DTO Mappers (GitHub -> Domain)
 """
 
-def single_commit_dto_to_domain_commit_dto (dto: SingleCommitEntity) -> Commit:
+def single_commit_dto_to_domain_commit_dto(dto: SingleCommitEntity) -> Commit:
     return Commit(
         sha=dto.sha,
-        author_login=dto.author.login if dto.author else None,
         message=dto.commit.message,
+        author_login=dto.author.login if dto.author else None,
+
+        authored_at=dto.commit.author.date if dto.commit.author else None,
+        committed_at=dto.commit.committer.date if dto.commit.committer else None,
+
+        author_name=dto.commit.author.name if dto.commit.author else None,
+        author_email=dto.commit.author.email if dto.commit.author else None,
+
+        additions=dto.stats.additions if dto.stats else None,
+        deletions=dto.stats.deletions if dto.stats else None,
+        changes=dto.stats.total if dto.stats else None,
+
         files=[
             FileChange(
                 path=f.filename,
-                filename=f.filename.split('/')[-1],
+                filename=f.filename.split("/")[-1],
                 patch=f.patch,
                 additions=f.additions,
-                deletions=f.deletions
+                deletions=f.deletions,
             )
             for f in dto.files
             if f.patch
-        ]
+        ],
     )
