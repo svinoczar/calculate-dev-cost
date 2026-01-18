@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS commits (
     changes                 INTEGER,
     commit_type             TEXT,
     commit_type_confidence  REAL DEFAULT 1.0,
+    is_enriched             BOOLEAN DEFAULT FALSE,
     created_at              TIMESTAMPTZ DEFAULT now(),
     updated_at              TIMESTAMPTZ DEFAULT now(),
 
