@@ -62,10 +62,10 @@ class CommitRepository:
     ) -> list[CommitModel]:
         query = self.db.query(CommitModel).filter(
             CommitModel.repository_id == repository_id,
-            CommitModel.commit_type.is_(None)
         )
         if since:
             query = query.filter(CommitModel.authored_at >= since)
+            print(query)
         return query.limit(limit).all()
 
 
@@ -73,15 +73,26 @@ class CommitRepository:
         self,
         commit_id: int,
         *,
-        authored_at,
-        committed_at,
-        author_name: str | None,
-        author_email: str | None,
-        additions: int | None,
-        deletions: int | None,
-        changes: int | None,
-        commit_type: str | None,
-        commit_type_confidence: float | None,
+        authored_at=None,
+        committed_at=None,
+        author_name: str | None = None,
+        author_email: str | None = None,
+        additions: int | None = None,
+        deletions: int | None = None,
+        changes: int | None = None,
+        commit_type: str | None = None,
+
+        is_conventional: bool | None = None,
+        conventional_type: str | None = None,
+        conventional_scope: str | None = None,
+        is_breaking_change: bool | None = None,
+
+        is_merge_commit: bool | None = None,
+        is_pr_commit: bool | None = None,
+        is_revert_commit: bool | None = None,
+
+        parents_count: int | None = None,
+        files_changed: int | None = None,
     ):
         commit = self.db.get(CommitModel, commit_id)
         if not commit:
@@ -95,6 +106,18 @@ class CommitRepository:
         commit.deletions = deletions
         commit.changes = changes
         commit.commit_type = commit_type
-        commit.commit_type_confidence = commit_type_confidence
+
+        commit.is_conventional = is_conventional
+        commit.conventional_type = conventional_type
+        commit.conventional_scope = conventional_scope
+        commit.is_breaking_change = is_breaking_change
+
+        commit.is_merge_commit = is_merge_commit
+        commit.is_pr_commit = is_pr_commit
+        commit.is_revert_commit = is_revert_commit
+
+        commit.parents_count = parents_count
+        commit.files_changed = files_changed
 
         self.db.commit()
+

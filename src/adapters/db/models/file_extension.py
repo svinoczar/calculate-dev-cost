@@ -1,17 +1,16 @@
 from datetime import datetime
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import TIMESTAMP, ForeignKey, func
-
+from sqlalchemy import TIMESTAMP, Text, func
 from adapters.db.base import Base
 
+from sqlalchemy.orm import Mapped, mapped_column
 
-class PersonContributorModel(Base):
-    __tablename__ = "person_contributors"
 
-    person_id: Mapped[int] = mapped_column(ForeignKey("persons.id"), primary_key=True)
-    contributor_id: Mapped[int] = mapped_column(
-        ForeignKey("contributors.id"), primary_key=True
-    )
+class FileExtensionModel(Base):
+    __tablename__ = "file_extensions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    extension: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
+    language: Mapped[str] = mapped_column(Text, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),

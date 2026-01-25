@@ -8,5 +8,4 @@ class FileChange(BaseModel):
     deletions: int
 
     language: str | None = None
-    language_confidence: float | None = None
     language_classifier: str | None = None

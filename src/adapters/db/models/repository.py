@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import String, Text, TIMESTAMP, func
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,8 +21,15 @@ class RepositoryModel(Base):
 
     default_branch: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    created_at: Mapped[str] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         server_default=func.now(),
-        nullable=False,
+        nullable=False
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
     )
