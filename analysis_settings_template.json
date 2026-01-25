@@ -1,0 +1,35 @@
+{
+    "commit_rules": {
+      "default_category": "feature",
+      "rules": [
+        {
+          "name": "Feature",
+          "category": "feature",
+          "keywords": ["feat", "feature", "добавил", "добавление", "новая", "implement", "add"],
+          "languages": ["en", "ru", "*"],
+          "priority": 95
+        },
+        {
+          "name": "Bugfix",
+          "category": "bugfix",
+          "keywords": ["fix", "bug", "исправил", "починил", "ошибка", "bugfix"],
+          "languages": ["en", "ru", "*"],
+          "priority": 99
+        },
+        {
+          "name": "Refactor",
+          "category": "refactor",
+          "keywords": ["refactor", "рефактор", "переписал", "cleanup"],
+          "languages": ["en", "ru", "*"],
+          "priority": 80
+        },
+        {
+          "name": "Testing",
+          "category": "test",
+          "keywords": ["test", "testing", "тест"],
+          "languages": ["en", "ru", "*"],
+          "priority": 100
+        }
+      ]
+    }
+  }

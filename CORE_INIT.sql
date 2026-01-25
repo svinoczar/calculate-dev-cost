@@ -91,8 +91,18 @@ CREATE TABLE IF NOT EXISTS commits (
     deletions               INTEGER,
     changes                 INTEGER,
     commit_type             TEXT,
-    commit_type_confidence  REAL DEFAULT 1.0,
-    is_enriched             BOOLEAN DEFAULT FALSE,
+    -- Conventional commits / semantic info
+    is_conventional         BOOLEAN DEFAULT FALSE,
+    conventional_type       TEXT,
+    conventional_scope      TEXT,
+    is_breaking_change      BOOLEAN DEFAULT FALSE,
+    -- Commit kind flags
+    is_merge_commit         BOOLEAN DEFAULT FALSE,
+    is_pr_commit            BOOLEAN DEFAULT FALSE,
+    -- Extra useful metadata
+    parents_count           INTEGER,
+    files_changed           INTEGER,
+    is_revert_commit        BOOLEAN DEFAULT FALSE,
     created_at              TIMESTAMPTZ DEFAULT now(),
     updated_at              TIMESTAMPTZ DEFAULT now(),
 
@@ -110,9 +120,50 @@ CREATE TABLE IF NOT EXISTS commit_files (
     deletions           INTEGER,
     changes             INTEGER,
     language            TEXT,
-    language_confidence REAL DEFAULT 1.0,
     patch               TEXT
 );
+
+-- =====================================
+-- File extensions
+-- =====================================
+CREATE TABLE IF NOT EXISTS file_extensions (
+    id              SERIAL PRIMARY KEY,
+    extension       TEXT NOT NULL,
+    language        TEXT NOT NULL,
+    is_system       BOOLEAN DEFAULT FALSE,
+    user_id         BIGINT DEFAULT NULL,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+INSERT INTO file_extensions (extension, language) VALUES
+    ('py', 'Python', TRUE),
+    ('js', 'JavaScript', TRUE),
+    ('ts', 'TypeScript', TRUE),
+    ('java', 'Java', TRUE),
+    ('cpp', 'C++', TRUE),
+    ('c', 'C', TRUE),
+    ('go', 'Go', TRUE),
+    ('rs', 'Rust', TRUE),
+    ('Dockerfile', 'Docker', TRUE),
+    ('yml', 'YAML', TRUE),
+    ('yaml', 'YAML', TRUE)
+ON CONFLICT DO NOTHING;
+
+-- =====================================
+-- Analysis settings (JSONB)
+-- =====================================
+CREATE TABLE IF NOT EXISTS analysis_settings (
+    id              BIGSERIAL PRIMARY KEY,
+    scope_type      TEXT NOT NULL, -- repo/team/org
+    scope_id        BIGINT NOT NULL,
+    settings        JSONB NOT NULL,
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    updated_at      TIMESTAMPTZ DEFAULT now(),
+
+    UNIQUE (scope_type, scope_id)
+);
+
 
 -- =====================================
 -- Indexes
@@ -128,3 +179,6 @@ CREATE INDEX IF NOT EXISTS idx_commit_files_commit
 
 CREATE INDEX IF NOT EXISTS idx_contributors_provider
     ON contributors(vcs_provider, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_analysis_settings_scope
+    ON analysis_settings(scope_type, scope_id);
