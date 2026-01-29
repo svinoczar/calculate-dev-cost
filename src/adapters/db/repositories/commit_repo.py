@@ -73,13 +73,17 @@ class CommitRepository:
         self,
         commit_id: int,
         *,
+
         authored_at=None,
         committed_at=None,
+
         author_name: str | None = None,
         author_email: str | None = None,
+
         additions: int | None = None,
         deletions: int | None = None,
         changes: int | None = None,
+
         commit_type: str | None = None,
 
         is_conventional: bool | None = None,
@@ -100,11 +104,14 @@ class CommitRepository:
 
         commit.authored_at = authored_at
         commit.committed_at = committed_at
+
         commit.author_name = author_name
         commit.author_email = author_email
+
         commit.additions = additions
         commit.deletions = deletions
         commit.changes = changes
+
         commit.commit_type = commit_type
 
         commit.is_conventional = is_conventional
@@ -120,4 +127,3 @@ class CommitRepository:
         commit.files_changed = files_changed
 
         self.db.commit()
-
