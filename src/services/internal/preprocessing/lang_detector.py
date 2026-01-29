@@ -69,36 +69,15 @@ class LanguageDetector:
     def __init__ (self):
         pass
     
-    def detect(self, filename: str, patch: str | None):
+    def detect(self, filename: str):
         lang = self._by_extension(filename)
-        if not lang:
-            return "Unknown", 0.0
-        
-        confidence = 1
 
-        if patch:
-            score = self._score_by_patterns(lang, patch)
-            confidence += min(score * 0.1, 0.3)
-
-        return lang, min(confidence, 0.9)
+        return lang
     
     def _by_extension(self, filename: str):
+        if not filename:
+            return "Unknown"
+        if '.' not in filename:
+            return filename
         ext = os.path.splitext(filename)[1].lstrip('.').lower()
         return FILE_EXTENSIONS.get(ext)
-    
-    def _score_by_patterns(self, lang: str, text: str) -> int:
-        score = 0
-
-        for pattern in FUNCTION_PATTERNS.get(lang, []):
-            if re.search(pattern, text, re.MULTILINE):
-                score += 2
-
-        for pattern in CLASS_PATTERNS.get(lang, []):
-            if re.search(pattern, text, re.MULTILINE):
-                score += 2
-
-        for pattern in IMPORT_PATTERNS.get(lang, []):
-            if re.search(pattern, text, re.MULTILINE):
-                score += 1
-
-        return score
