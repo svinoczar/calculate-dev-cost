@@ -1,17 +1,17 @@
 {
     "commit_rules": {
-      "default_category": "feature",
+      "default_category": "NO CATEGORY",
       "rules": [
         {
           "name": "Feature",
-          "category": "feature",
+          "category": "feat",
           "keywords": ["feat", "feature", "добавил", "добавление", "новая", "implement", "add"],
           "languages": ["en", "ru", "*"],
           "priority": 95
         },
         {
           "name": "Bugfix",
-          "category": "bugfix",
+          "category": "fix",
           "keywords": ["fix", "bug", "исправил", "починил", "ошибка", "bugfix"],
           "languages": ["en", "ru", "*"],
           "priority": 99

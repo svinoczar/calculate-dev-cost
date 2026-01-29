@@ -120,7 +120,10 @@ CREATE TABLE IF NOT EXISTS commit_files (
     deletions           INTEGER,
     changes             INTEGER,
     language            TEXT,
-    patch               TEXT
+    patch               TEXT,
+    created_at              TIMESTAMPTZ DEFAULT now(),
+    updated_at              TIMESTAMPTZ DEFAULT now()
+
 );
 
 -- =====================================

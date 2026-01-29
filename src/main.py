@@ -6,7 +6,7 @@ from src.services.external.github_stats_manual import *
 from src.services.internal.preprocessing.files_filter import FilesFilter
 from src.services.internal.preprocessing.commit_enricher import CommitEnricher
 from src.services.internal.preprocessing.file_language_enricher import FileLanguageEnricher
-from src.services.internal.preprocessing.commit_type_detector import CommitTypeDetector
+from src.services.internal.preprocessing.commit_type_detector import HeuristicCommitClassifier
 from src.util.mapper import (
     git_commit_authors_json_to_dto_list,
     single_commit_dto_to_domain_commit_dto,
@@ -80,7 +80,7 @@ def preprocess_commits(filename: str):
     filtered_commit_domain_objects: list[Commit] = []
 
     file_enricher = FileLanguageEnricher(lang_detector)
-    commit_type_detector = CommitTypeDetector()
+    commit_type_detector = HeuristicCommitClassifier()
     commit_enricher = CommitEnricher(
         file_enricher=file_enricher, commit_type_detector=commit_type_detector
     )
@@ -111,7 +111,6 @@ def preprocess_commits(filename: str):
             out.write(
                 f"commit {c}\n"
                 f"commit_type: {commit.commit_type}\n"
-                f"confidence: {commit.commit_type_confidence:.3f}\n\n"
             )
 
             for file in commit.files:
